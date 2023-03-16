@@ -14,6 +14,6 @@ public interface PostagemRepository extends JpaRepository<Postagem, Long>{
 	
 	//criando busca especifica pelo titulo
 	//Sempre que ocorrer uma busca utilizando Containing(LIKE), é obrigatório o uso de
-	//@Param para passar uma variavel para consulta
+	//@Param para passar uma variavel para consulta que serve como parametro
 	public List<Postagem> findAllByTituloContainingIgnoreCase(@Param("titulo")String titulo);
 }

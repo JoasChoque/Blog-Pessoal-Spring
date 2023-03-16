@@ -5,7 +5,6 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -21,6 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.generation.blogpessoal.model.Postagem;
 import com.generation.blogpessoal.repository.PostagemRepository;
+import com.generation.blogpessoal.repository.TemaRepository;
 
 import jakarta.validation.Valid;
 
@@ -31,6 +31,9 @@ public class PostagemController {
 	
 	@Autowired
 	private PostagemRepository postagemRepository;
+	
+	@Autowired
+	private TemaRepository temaRepository;
 	
 	//Listando todas as postagens
 	@GetMapping
@@ -60,6 +63,7 @@ public class PostagemController {
 	@PostMapping
 	public ResponseEntity<Postagem> post(@Valid @RequestBody Postagem postagem){
 		
+		if(temaRepository.existsById(postagem.getTema().getId()))
 		return ResponseEntity
 				//devolve mensagem com o protocolo http(200 ->ok, 400 ->erro etc)
 				.status(HttpStatus.CREATED)
@@ -67,23 +71,22 @@ public class PostagemController {
 				.body(postagemRepository
 				//método da JPA repository salvando a postagem em parametro
 				.save(postagem));
+		
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 	}
 	
 	//Atualizando postagens
 	@PutMapping
 	public ResponseEntity<Postagem> put(@Valid @RequestBody Postagem postagem){
-		//Retorna o conteúdo de uma postagem pelo id caso seja encontrado, senão retorna nulo
-		return postagemRepository.findById(postagem.getId())
-				//Mapeia o objeto resposta com o valor caso encontrado por id
-				//e ao invés de mostrar o objeto encontrado, utiliza o
-				//método save com o conteudo do objeto postagem
-				//atualizando o mesmo e retornando status 200
-				.map(resposta -> ResponseEntity.status(HttpStatus.OK)
-				.body(postagemRepository
-				.save(postagem)))
-				.orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
-				//constrói a resposta de acordo com o status do https retornado		
-				.build());
+		if(postagemRepository.existsById(postagem.getId())) {
+			
+			if(postagemRepository.existsById(postagem.getTema().getId()))
+				return ResponseEntity.status(HttpStatus.OK)
+						.body(postagemRepository.save(postagem));
+			
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+		}
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 	}
 	
 	//Apagando postagens por Id
@@ -102,7 +105,6 @@ public class PostagemController {
 		//executa o método deleteById(id)
 		if(postagem.isEmpty()) 
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-		
 		
 		postagemRepository.deleteById(id);
 		
