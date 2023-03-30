@@ -69,7 +69,7 @@ public class TemaController {
 	}
 	
 	//Deletando temas
-	@ResponseStatus(HttpStatus.NOT_FOUND)
+	@ResponseStatus(HttpStatus.NO_CONTENT)
 	@DeleteMapping("/{id}")
 	public void deletar(@PathVariable Long id) {
 		
